@@ -1,0 +1,337 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[2]:
+
+
+# Get pandas and cartopy
+import pandas as pd
+import numpy as np
+
+get_ipython().system('pip install git+https://github.com/SciTools/cartopy.git')
+get_ipython().system('pip uninstall shapely -y')
+get_ipython().system('pip install shapely --no-binary shapely --force')
+
+import cartopy.crs as ccrs
+import matplotlib.pyplot as plt
+from cartopy.feature import NaturalEarthFeature
+
+
+# In[3]:
+
+
+## MetaG Mapping for micromonas
+#Read in files
+metaG_df = pd.read_csv('Desktop/mappingrates.csv')
+fullMG_df = pd.read_excel('Desktop/PRJEB4352_metaG_wenv_PE.xlsx')
+
+#Rename and drop unneeded columns
+fullMG_df.drop(fullMG_df.columns.difference(['run_accession','Latitude','Longitude','OS_region']), 1, inplace = True)
+metaG_df = metaG_df.rename(columns={'directorylist.txt':'run_accession','[2021-07-01 23:32:59.160] [jointLog] [info] Mapping rate = 0.350353%':'New_MR'})
+metaG_df['New_MR'] = metaG_df['New_MR'].str.split('=').str[1]
+metaG_df['New_MR'] = metaG_df['New_MR'].str.split('%').str[0]
+
+#Condense the dataframe into only needed data
+cond = ~fullMG_df['run_accession'].isin(metaG_df['run_accession'])
+fullMG_df.drop(fullMG_df[cond].index, inplace = True)
+fullMG_df = fullMG_df.reset_index(drop = True)
+metaG_df['Longitude'] = pd.Series(fullMG_df['Longitude'])
+metaG_df['Latitude'] = pd.Series(fullMG_df['Latitude'])
+metaG_df = metaG_df.dropna()
+metaG_df['New_MR'] = pd.to_numeric(metaG_df['New_MR'])
+metaG_df
+
+
+# In[4]:
+
+
+# Basic scatter plot of the mapping rate
+
+ax = plt.axes(projection=ccrs.PlateCarree())
+ax.coastlines()
+
+scat = plt.scatter(
+    x=metaG_df['Longitude'],
+    y=metaG_df['Latitude'],
+    color='red',
+    s=(metaG_df['New_MR'])*100,
+    alpha=1,
+    transform=ccrs.PlateCarree()
+)
+plt.legend(*scat.legend_elements("sizes", num=6))
+
+plt.show()
+
+
+# In[51]:
+
+
+#MetaG mapping rates for phaeo
+metaG_df_phaeo = pd.read_excel('Desktop/WHOI_2021/metaG_allregions_largefraction_mappingrates.xlsx')
+new_full_MG = pd.read_excel('Desktop/PRJEB4352_metaG_wenv_PE.xlsx')
+new_full_MG.drop(new_full_MG.columns.difference(['run_accession','Latitude','Longitude','OS_region']), 1, inplace = True)
+metaG_df_phaeo['rate'] = metaG_df_phaeo['rate'].str.split('=').str[1]
+metaG_df_phaeo['rate'] = metaG_df_phaeo['rate'].str.split('%').str[0]
+
+cond = ~new_full_MG['run_accession'].isin(metaG_df_phaeo['run_accession'])
+new_full_MG.drop(new_full_MG[cond].index, inplace = True)
+new_full_MG = new_full_MG.reset_index(drop = True)
+
+metaG_df_phaeo['Longitude'] = pd.Series(new_full_MG['Longitude'])
+metaG_df_phaeo['Latitude'] = pd.Series(new_full_MG['Latitude'])
+
+metaG_df_phaeo = metaG_df_phaeo.dropna()
+metaG_df_phaeo['rate'] = pd.to_numeric(metaG_df_phaeo['rate'])
+# NEED TO UNDO THIS TO MAKE EVERYTHING WORK BUT RATIO
+#metaG_df_phaeo = metaG_df_phaeo.rename(columns={'rate':'New_MR_phaeo','Longitude':'Longitude_phaeo',
+#                                               'Latitude':'Latitude_phaeo', 'run_accession':'run_accession_phaeo'})
+new_full_MG
+
+
+# In[5]:
+
+
+ax = plt.axes(projection=ccrs.PlateCarree())
+ax.coastlines()
+
+scat = plt.scatter(
+    x=metaG_df_phaeo['Longitude_phaeo'],
+    y=metaG_df_phaeo['Latitude_phaeo'],
+    color='red',
+    s=(metaG_df_phaeo['New_MR_phaeo'])*10,
+    alpha=1,
+    transform=ccrs.PlateCarree()
+)
+plt.scatter(x=metaG_df['Longitude'],
+           y=metaG_df['Latitude'],
+           color='green',
+           s=(metaG_df['New_MR'])*10,
+           alpha=1,
+           transform=ccrs.PlateCarree()
+           )
+plt.legend(*scat.legend_elements("sizes", num=4))
+
+plt.show()
+
+
+# In[6]:
+
+
+dfwelp = pd.merge(metaG_df_phaeo, metaG_df, on=['Longitude','Latitude'], how='left',indicator='Exist')
+dfwelp = dfwelp[~dfwelp.Exist.str.contains("left_only")]
+dfwelp['phaeo/micro'] = dfwelp['rate']/dfwelp['New_MR']
+dfwelp
+
+
+# In[7]:
+
+
+# Basic scatter plot of the points
+
+ax = plt.axes(projection=ccrs.PlateCarree())
+ax.coastlines()
+
+scat = plt.scatter(
+    x=dfwelp['Longitude'],
+    y=dfwelp['Latitude'],
+    color='red',
+    s=(dfwelp['phaeo/micro']),
+    alpha=1,
+    transform=ccrs.PlateCarree()
+)
+plt.legend(*scat.legend_elements("sizes", num=6))
+
+plt.show()
+
+
+# In[41]:
+
+
+#Read in fastANI output and rename columns
+ani_df2 = pd.read_excel('Desktop/ANI_excel.xlsx')
+ani_df2.columns = ['reference','MMETSP1327','MMETSP0802','MMETSP1390','MMETSP1401','MicpuC3v2','MicpuN3v2']
+ani_df2 = ani_df2.set_index('reference')
+ani_df2
+
+
+# In[42]:
+
+
+import numpy as np
+import seaborn as sns
+import matplotlib.pylab as plt
+#Make heatmap for ANI data
+ax = sns.heatmap(ani_df2, annot=True)
+ax
+
+
+# In[8]:
+
+
+# Read in metaT df for micromonas and lat, long
+metaT_df = pd.read_csv('Desktop/mappingrates_t.csv')
+fullMT_df = pd.read_excel('Desktop/PRJEB6609_metaT_wenv_PE.xlsx')
+
+# Get only needed columns and rename them, split names as needed
+fullMT_df.drop(fullMT_df.columns.difference(['run_accession','Latitude','Longitude']), 1, inplace = True)
+metaT_df = metaT_df.rename(columns={'directorylist.txt':'run_accession','[2021-07-01 22:37:53.234] [jointLog] [info] Mapping rate = 0.442336%':'New_MR'})
+metaT_df['New_MR'] = metaT_df['New_MR'].str.split('=').str[1]
+metaT_df['New_MR'] = metaT_df['New_MR'].str.split('%').str[0]
+
+# Find only the needed rows
+cond = ~fullMT_df['run_accession'].isin(metaT_df['run_accession'])
+fullMT_df.drop(fullMT_df[cond].index, inplace = True)
+fullMT_df = fullMT_df.reset_index(drop = True)
+
+metaT_df['Longitude'] = pd.Series(fullMT_df['Longitude'])
+metaT_df['Latitude'] = pd.Series(fullMT_df['Latitude'])
+
+metaT_df = metaT_df.dropna()
+metaT_df['New_MR'] = pd.to_numeric(metaT_df['New_MR'])
+metaT_df
+
+#MetaT mapping rates for phaeo
+metaT_df_phaeo = pd.read_csv('Desktop/mappingrates_t_phaeo.csv')
+new_full_MT = pd.read_excel('Desktop/PRJEB6609_metaT_wenv_PE.xlsx')
+#Find only the needed columns
+new_full_MT.drop(new_full_MT.columns.difference(['run_accession','Latitude','Longitude']), 1, inplace = True)
+metaT_df_phaeo = metaT_df_phaeo.rename(columns={'directorylist.txt':'run_accession','[2021-04-23 14:13:30.837] [jointLog] [info] Mapping rate = 23.7524%':'New_MR_2'})
+metaT_df_phaeo['New_MR_2'] = metaT_df_phaeo['New_MR_2'].str.split('=').str[1]
+metaT_df_phaeo['New_MR_2'] = metaT_df_phaeo['New_MR_2'].str.split('%').str[0]
+
+# Find only the needed rows
+cond = ~new_full_MT['run_accession'].isin(metaT_df_phaeo['run_accession'])
+new_full_MT.drop(new_full_MT[cond].index, inplace = True)
+new_full_MT = new_full_MT.reset_index(drop = True)
+
+metaT_df_phaeo['Longitude'] = pd.Series(new_full_MT['Longitude'])
+metaT_df_phaeo['Latitude'] = pd.Series(new_full_MT['Latitude'])
+
+metaT_df_phaeo = metaT_df_phaeo.dropna()
+metaT_df_phaeo['New_MR_2'] = pd.to_numeric(metaT_df_phaeo['New_MR_2'])
+# NEED TO UNDO THIS TO MAKE EVERYTHING WORK BUT RATIO
+#metaG_df_phaeo = metaG_df_phaeo.rename(columns={'rate':'New_MR_phaeo','Longitude':'Longitude_phaeo',
+#                                               'Latitude':'Latitude_phaeo', 'run_accession':'run_accession_phaeo'})
+#metaT_df_phaeo
+
+dfwelpT = pd.merge(metaT_df_phaeo, metaT_df, on=['Longitude','Latitude'], how='left',indicator='Exist')
+dfwelpT = dfwelpT[~dfwelpT.Exist.str.contains("left_only")]
+dfwelpT['phaeo/micro_mT'] = dfwelpT['New_MR_2']/dfwelpT['New_MR']
+metaT_df_phaeo
+
+
+# In[9]:
+
+
+dfwelpboth = pd.merge(dfwelpT, dfwelp, on=['Longitude','Latitude'], how='left',indicator='exists')
+dfwelpboth = dfwelpboth[~dfwelpboth.exists.str.contains("left_only")]
+#dfwelpboth = dfwelpboth.drop_duplicates(subset=['phaeo/micro_mT'], keep='first')
+dfwelpboth
+
+
+# In[73]:
+
+
+#Full phaeo and micro dataframe
+full_df_phaeo = pd.merge(metaG_df_phaeo, metaT_df_phaeo, on=['Longitude','Latitude'], how='left',indicator='Exist')
+full_df_phaeo = full_df_phaeo[~full_df_phaeo.Exist.str.contains("left_only")]
+full_df_phaeo = full_df_phaeo.drop_duplicates(subset=['Longitude'], keep='first')
+full_df_micro = pd.merge(metaG_df, metaT_df, on=['Longitude','Latitude'], how='left',indicator='Exist')
+full_df_micro = full_df_micro[~full_df_micro.Exist.str.contains("left_only")]
+full_df_micro = full_df_micro.drop_duplicates(subset=['Longitude'], keep='first')
+full_df_micro['location']=np.nan
+full_df_micro = full_df_micro.reset_index(drop=True)
+
+full_df_micro.loc[full_df_micro.run_accession_x.isin(fullMG_df.run_accession),'location'] = fullMG_df.OS_region
+#full_df_micro = full_df_micro.replace({'[SPO] South Pacific Ocean (MRGID:1910)':1,'[NPO] North Pacific Ocean (MRGID:1908)':2,
+#          '[MS] Mediterranean Sea (MRGID:1905)':3,'[NAO] North Atlantic Ocean (MRGID:1912)':4,'[SAO] South Atlantic Ocean (MRGID:1914)':5,
+#          '[SO] Southern Ocean (MRGID:1907)':6,'[IO] Indian Ocean (MRGID:1904)':7})
+
+
+full_df_phaeo
+
+full_df_phaeo['location']=np.nan
+full_df_phaeo = full_df_phaeo.reset_index(drop=True)
+
+full_df_phaeo.loc[full_df_phaeo.run_accession_x.isin(new_full_MG.run_accession),'location'] = new_full_MG.OS_region
+#full_df_phaeo = full_df_phaeo.replace({'[SPO] South Pacific Ocean (MRGID:1910)':1,'[NPO] North Pacific Ocean (MRGID:1908)':2,
+#          '[MS] Mediterranean Sea (MRGID:1905)':3,'[NAO] North Atlantic Ocean (MRGID:1912)':4,'[SAO] South Atlantic Ocean (MRGID:1914)':5,
+#          '[SO] Southern Ocean (MRGID:1907)':6,'[IO] Indian Ocean (MRGID:1904)':7})
+
+# Trim down location names
+full_df_micro['location'] = full_df_micro['location'].str.replace(r"\(.*\)","")
+full_df_micro['location'] = full_df_micro['location'].str.replace(r"\[.*\]","")
+full_df_phaeo['location'] = full_df_phaeo['location'].str.replace(r"\(.*\)","")
+full_df_phaeo['location'] = full_df_phaeo['location'].str.replace(r"\[.*\]","")
+
+full_df_phaeo
+
+
+# In[76]:
+
+
+# Phaeo metaT vs metaG log transformed with colors
+import seaborn
+from  matplotlib import pyplot
+
+seaborn.set(style='ticks')
+
+
+fg = seaborn.FacetGrid(data=full_df_phaeo, hue='location')
+fg.map(pyplot.scatter, 'rate','New_MR_2').add_legend()
+fg.set(xscale='log')
+fg.set(yscale='log')
+fg.fig.suptitle('Phaeocystis')
+fg.set(xlabel='MetaG', ylabel='MetaT')
+
+
+# In[77]:
+
+
+# Micro metaT vs metaG log transformed with colors
+
+import seaborn
+from  matplotlib import pyplot
+
+seaborn.set(style='ticks')
+
+
+fg = seaborn.FacetGrid(data=full_df_micro, hue='location')
+fg.map(pyplot.scatter, 'New_MR_x','New_MR_y').add_legend()
+fg.set(xscale='log')
+fg.set(yscale='log')
+fg.fig.suptitle('Micromonas')
+fg.set(xlabel='MetaG', ylabel='MetaT')
+
+
+# In[3]:
+
+
+#BUSCO graph
+import matplotlib.pyplot as plt
+import numpy as np
+width=.35
+#Since so few values, manually entered them in
+labels = ['MicpuC3v2','MicpuN3v2','MMETSP0802','MMETSP1327','MMETSP1390','MMETSP1401']
+casc = np.array([216,220,131,145,173,160])
+cad = np.array([2,4,31,1,0,0])
+fr = np.array([7,8,25,23,16,27])
+mi = np.array([30,23,68,86,66,68])
+
+#Plot the bars for each strain
+plt.bar(labels, casc, color='r')
+plt.bar(labels, cad, bottom=casc, color='b') #Make sure casc is on bottom
+plt.bar(labels, fr, bottom=casc+cad, color='y')
+plt.bar(labels, mi, bottom=casc+cad+fr, color='g')
+plt.ylabel("number of genes")
+plt.legend(['completeandsinglecopy','completeandduplicated','fragmented','missing'])
+plt.title("BUSCO analysis")
+plt.xticks(rotation=45)
+plt.show()
+
+
+# In[ ]:
+
+
+
+
