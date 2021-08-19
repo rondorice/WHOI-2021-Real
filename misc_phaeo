@@ -22,8 +22,8 @@ from cartopy.feature import NaturalEarthFeature
 
 ## MetaG Mapping for micromonas
 #Read in files
-metaG_df = pd.read_csv('Desktop/mappingrates.csv')
-fullMG_df = pd.read_excel('Desktop/PRJEB4352_metaG_wenv_PE.xlsx')
+metaG_df = pd.read_csv('mappingrates.csv')
+fullMG_df = pd.read_excel('PRJEB4352_metaG_wenv_PE.xlsx')
 
 #Rename and drop unneeded columns
 fullMG_df.drop(fullMG_df.columns.difference(['run_accession','Latitude','Longitude','OS_region']), 1, inplace = True)
@@ -67,8 +67,8 @@ plt.show()
 
 
 #MetaG mapping rates for phaeo
-metaG_df_phaeo = pd.read_excel('Desktop/WHOI_2021/metaG_allregions_largefraction_mappingrates.xlsx')
-new_full_MG = pd.read_excel('Desktop/PRJEB4352_metaG_wenv_PE.xlsx')
+metaG_df_phaeo = pd.read_excel('metaG_allregions_largefraction_mappingrates.xlsx')
+new_full_MG = pd.read_excel('PRJEB4352_metaG_wenv_PE.xlsx')
 new_full_MG.drop(new_full_MG.columns.difference(['run_accession','Latitude','Longitude','OS_region']), 1, inplace = True)
 metaG_df_phaeo['rate'] = metaG_df_phaeo['rate'].str.split('=').str[1]
 metaG_df_phaeo['rate'] = metaG_df_phaeo['rate'].str.split('%').str[0]
@@ -148,7 +148,7 @@ plt.show()
 
 
 #Read in fastANI output and rename columns
-ani_df2 = pd.read_excel('Desktop/ANI_excel.xlsx')
+ani_df2 = pd.read_excel('ANI_excel.xlsx')
 ani_df2.columns = ['reference','MMETSP1327','MMETSP0802','MMETSP1390','MMETSP1401','MicpuC3v2','MicpuN3v2']
 ani_df2 = ani_df2.set_index('reference')
 ani_df2
@@ -169,8 +169,8 @@ ax
 
 
 # Read in metaT df for micromonas and lat, long
-metaT_df = pd.read_csv('Desktop/mappingrates_t.csv')
-fullMT_df = pd.read_excel('Desktop/PRJEB6609_metaT_wenv_PE.xlsx')
+metaT_df = pd.read_csv('mappingrates_t.csv')
+fullMT_df = pd.read_excel('PRJEB6609_metaT_wenv_PE.xlsx')
 
 # Get only needed columns and rename them, split names as needed
 fullMT_df.drop(fullMT_df.columns.difference(['run_accession','Latitude','Longitude']), 1, inplace = True)
@@ -191,8 +191,8 @@ metaT_df['New_MR'] = pd.to_numeric(metaT_df['New_MR'])
 metaT_df
 
 #MetaT mapping rates for phaeo
-metaT_df_phaeo = pd.read_csv('Desktop/mappingrates_t_phaeo.csv')
-new_full_MT = pd.read_excel('Desktop/PRJEB6609_metaT_wenv_PE.xlsx')
+metaT_df_phaeo = pd.read_csv('mappingrates_t_phaeo.csv')
+new_full_MT = pd.read_excel('PRJEB6609_metaT_wenv_PE.xlsx')
 #Find only the needed columns
 new_full_MT.drop(new_full_MT.columns.difference(['run_accession','Latitude','Longitude']), 1, inplace = True)
 metaT_df_phaeo = metaT_df_phaeo.rename(columns={'directorylist.txt':'run_accession','[2021-04-23 14:13:30.837] [jointLog] [info] Mapping rate = 23.7524%':'New_MR_2'})
