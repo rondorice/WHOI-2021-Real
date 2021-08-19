@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 #Reading in data and grouping
-micro_init = pd.read_csv('Desktop/rename_m.merged.numreads.csv', sep='\t')
+micro_init = pd.read_csv('rename_m.merged.numreads.csv', sep='\t')
 micro_init['Name'] = micro_init['Name'].str.split('_').str[:1].str.join('_')
 micro_init = micro_init.groupby(['Name'], axis=0, as_index=False).sum()
 #Transpose
@@ -49,7 +49,7 @@ startangle=90, shadow=False, labels=micro_init['Name'], legend = True, fontsize=
 
 
 # Read in other data and merge df
-other_data = pd.read_excel('Desktop/PRJEB4352_metaG_wenv_PE.xlsx')
+other_data = pd.read_excel('PRJEB4352_metaG_wenv_PE.xlsx')
 other_data
 good = other_data[['run_accession','Latitude','Longitude']]
 merged_df = good.merge(micro_init_t, how = 'inner', on =['run_accession'])
