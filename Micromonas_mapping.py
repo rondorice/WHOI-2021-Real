@@ -21,12 +21,12 @@ import pandas as pd
 
 #Reading in data and grouping
 micro_init = pd.read_csv('rename_m.merged.numreads.csv', sep='\t')
-micro_init['Name'] = micro_init['Name'].str.split('_').str[:1].str.join('_')
-micro_init = micro_init.groupby(['Name'], axis=0, as_index=False).sum()
+micro_init['Name'] = micro_init['Name'].str.split('_').str[:1].str.join('_') #Split and join
+micro_init = micro_init.groupby(['Name'], axis=0, as_index=False).sum() 
 #Transpose
 micro_init_t = micro_init.transpose()
-micro_init_t.reset_index(level=0, inplace=True)
-new_header = micro_init_t.iloc[0]
+micro_init_t.reset_index(level=0, inplace=True) #Reset the index
+new_header = micro_init_t.iloc[0] 
 micro_init_t = micro_init_t[1:]
 micro_init_t.columns = new_header
 #Rename to improve legend
@@ -51,8 +51,8 @@ startangle=90, shadow=False, labels=micro_init['Name'], legend = True, fontsize=
 # Read in other data and merge df
 other_data = pd.read_excel('PRJEB4352_metaG_wenv_PE.xlsx')
 other_data
-good = other_data[['run_accession','Latitude','Longitude']]
-merged_df = good.merge(micro_init_t, how = 'inner', on =['run_accession'])
+good = other_data[['run_accession','Latitude','Longitude']] #Needed columns
+merged_df = good.merge(micro_init_t, how = 'inner', on =['run_accession']) #Merge on similar columns
 #merged_df.set_index(['run_accession','Latitude','Longitude'], inplace= True)
 merged_df
 
