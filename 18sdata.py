@@ -23,8 +23,8 @@ from cartopy.feature import NaturalEarthFeature
 #Read in data and trim down taxonomy
 ev_params = pd.read_csv('environmental_parameters.csv',sep='\t')
 ab_matrix = pd.read_csv('abundance_matrix.csv',sep='\t')
-ab_matrix['taxonomy'] = ab_matrix['taxonomy'].str.rsplit(';').str[-1] 
-ab_matrix = ab_matrix.groupby(['taxonomy']).sum()
+ab_matrix['taxonomy'] = ab_matrix['taxonomy'].str.rsplit(';').str[-1] #Split by characters 
+ab_matrix = ab_matrix.groupby(['taxonomy']).sum() 
 #Transpose the data and rename columns
 df_tr = ab_matrix.T
 df_tr = df_tr.reset_index()
@@ -71,7 +71,7 @@ startangle=90, shadow=False, labels=transposed['index'], legend = True, fontsize
 # In[6]:
 
 
-#All size fractions- mapping 18s as a test
+#All size fractions- mapping 18s as a test (same as micro mapping)
 import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
@@ -106,14 +106,14 @@ for index, row in df_agg.iterrows():
 metaG_df = pd.read_csv('mappingrates.csv')
 fullMG_df = pd.read_excel('PRJEB4352_metaG_wenv_PE.xlsx')
 
-fullMG_df.drop(fullMG_df.columns.difference(['run_accession','Latitude','Longitude','OS_region']), 1, inplace = True)
+fullMG_df.drop(fullMG_df.columns.difference(['run_accession','Latitude','Longitude','OS_region']), 1, inplace = True) #Keep needed columns
 metaG_df = metaG_df.rename(columns={'directorylist.txt':'run_accession','[2021-07-01 23:32:59.160] [jointLog] [info] Mapping rate = 0.350353%':'New_MR'})
 metaG_df['New_MR'] = metaG_df['New_MR'].str.split('=').str[1]
 metaG_df['New_MR'] = metaG_df['New_MR'].str.split('%').str[0]
 
-cond = ~fullMG_df['run_accession'].isin(metaG_df['run_accession'])
-fullMG_df.drop(fullMG_df[cond].index, inplace = True)
-fullMG_df = fullMG_df.reset_index(drop = True)
+cond = ~fullMG_df['run_accession'].isin(metaG_df['run_accession']) #Find samples appearing in both 
+fullMG_df.drop(fullMG_df[cond].index, inplace = True) #Drop values not in both
+fullMG_df = fullMG_df.reset_index(drop = True) #Reset the index
 
 metaG_df['Longitude'] = pd.Series(fullMG_df['Longitude'])
 metaG_df['Latitude'] = pd.Series(fullMG_df['Latitude'])
