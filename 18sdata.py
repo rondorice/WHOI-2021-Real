@@ -21,8 +21,8 @@ from cartopy.feature import NaturalEarthFeature
 
 
 #Read in data and trim down taxonomy
-ev_params = pd.read_csv('Desktop/environmental_parameters.csv',sep='\t')
-ab_matrix = pd.read_csv('Desktop/abundance_matrix.csv',sep='\t')
+ev_params = pd.read_csv('environmental_parameters.csv',sep='\t')
+ab_matrix = pd.read_csv('abundance_matrix.csv',sep='\t')
 ab_matrix['taxonomy'] = ab_matrix['taxonomy'].str.rsplit(';').str[-1] 
 ab_matrix = ab_matrix.groupby(['taxonomy']).sum()
 #Transpose the data and rename columns
@@ -103,8 +103,8 @@ for index, row in df_agg.iterrows():
 
 
 ## MetaG Mapping for micromonas
-metaG_df = pd.read_csv('Desktop/mappingrates.csv')
-fullMG_df = pd.read_excel('Desktop/PRJEB4352_metaG_wenv_PE.xlsx')
+metaG_df = pd.read_csv('mappingrates.csv')
+fullMG_df = pd.read_excel('PRJEB4352_metaG_wenv_PE.xlsx')
 
 fullMG_df.drop(fullMG_df.columns.difference(['run_accession','Latitude','Longitude','OS_region']), 1, inplace = True)
 metaG_df = metaG_df.rename(columns={'directorylist.txt':'run_accession','[2021-07-01 23:32:59.160] [jointLog] [info] Mapping rate = 0.350353%':'New_MR'})
@@ -142,8 +142,8 @@ df_micro_full
 
 
 # Read in metaT df for micromonas and lat, long
-metaT_df = pd.read_csv('Desktop/mappingrates_t.csv')
-fullMT_df = pd.read_excel('Desktop/PRJEB6609_metaT_wenv_PE.xlsx')
+metaT_df = pd.read_csv('mappingrates_t.csv')
+fullMT_df = pd.read_excel('PRJEB6609_metaT_wenv_PE.xlsx')
 
 # Get only needed columns and rename them, split names as needed
 fullMT_df.drop(fullMT_df.columns.difference(['run_accession','Latitude','Longitude']), 1, inplace = True)
